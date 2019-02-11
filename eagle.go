@@ -28,6 +28,6 @@ type Router interface {
 }
 
 func NewRouter() *Mux {
-	m := make(map[string]Resource)
+	m := make(map[string]*resourceInfo)
 	return &Mux{resources: m}
 }
