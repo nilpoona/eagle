@@ -24,7 +24,7 @@ func (resource *RestResource) Head(w http.ResponseWriter, r *http.Request)   {}
 
 type Router interface {
 	http.Handler
-	SetResource(pattern string, resource Resource)
+	SetResource(pattern string, resource Resource) error
 }
 
 func NewRouter() *Mux {

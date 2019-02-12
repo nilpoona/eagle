@@ -1,24 +1,28 @@
 package eagle
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
+type resourceInfoMap map[string]*resourceInfo
+
+const pathParamPrefix = "EaglePathParam:"
+
 type resourceInfo struct {
 	resource Resource
-	params   map[string]string
-	pattern  string
+	isRegExp bool
 }
 
 type Mux struct {
 	handler   http.Handler
-	resources map[string]*resourceInfo
+	resources resourceInfoMap
 }
 
-// /users/{id:[0-9]+}
 func genMatchPattern(pattern string) (string, bool, error) {
 	p := pattern
 	isRegExp := false
@@ -61,17 +65,53 @@ func genMatchPattern(pattern string) (string, bool, error) {
 	return p, isRegExp, nil
 }
 
-func (mux *Mux) SetResource(pattern string, resource Resource) {
-	mux.resources[pattern] = &resourceInfo{
-		resource: resource,
+func findResourceByRequestPath(resources resourceInfoMap, path string) (Resource, map[string]string) {
+	params := make(map[string]string)
+	for pattern, ri := range resources {
+		if ri.isRegExp {
+			re := regexp.MustCompile(pattern)
+			match := re.FindSubmatch([]byte(path))
+			if len(match) == 0 {
+				continue
+			}
+			for i, name := range re.SubexpNames() {
+				if i != 0 && name != "" {
+					params[name] = string(match[i])
+				}
+			}
+			return ri.resource, params
+		} else {
+			if path == pattern {
+				return ri.resource, params
+			}
+		}
 	}
+	return nil, params
 }
 
-func (mux *Mux) handle(r *http.Request) http.HandlerFunc {
+func (mux *Mux) SetResource(pattern string, resource Resource) error {
+	p, isRegExp, err := genMatchPattern(pattern)
+	if err != nil {
+		return err
+	}
+
+	mux.resources[p] = &resourceInfo{
+		resource: resource,
+		isRegExp: isRegExp,
+	}
+
+	return nil
+}
+
+func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 	method := r.Method
 	path := r.URL.Path
 
-	resource := mux.resources[path].resource
+	resource, params := findResourceByRequestPath(mux.resources, path)
+	if resource == nil {
+		// TODO: 404
+	}
+
 	var h http.HandlerFunc
 	switch method {
 	case http.MethodPost:
@@ -87,10 +127,17 @@ func (mux *Mux) handle(r *http.Request) http.HandlerFunc {
 	}
 	// TODO: method not allowed
 
-	return h
+	return h, params
+}
+
+func pathParamKey(k string) string {
+	return fmt.Sprintf("%s%s", pathParamPrefix, k)
 }
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h := mux.handle(r)
+	h, params := mux.handle(r)
+	for key, val := range params {
+		r = r.WithContext(context.WithValue(r.Context(), pathParamKey(key), val))
+	}
 	h.ServeHTTP(w, r)
 }

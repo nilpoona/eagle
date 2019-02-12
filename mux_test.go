@@ -13,6 +13,40 @@ func isSameErrorMessage(err, err2 error) bool {
 	return err.Error() == err2.Error()
 }
 
+func TestFindResourceByRequestPath(t *testing.T) {
+	type resource struct {
+		RestResource
+	}
+	tests := []struct {
+		name            string
+		path            string
+		resourceInfoMap func() resourceInfoMap
+	}{
+		{
+			name: "test1",
+			path: "/users/2",
+			resourceInfoMap: func() resourceInfoMap {
+				r := &resource{}
+				ri := &resourceInfo{
+					resource: r,
+					isRegExp: true,
+				}
+				return resourceInfoMap(map[string]*resourceInfo{
+					"/users/(?P<id>[0-9]+)": ri,
+				})
+			},
+		},
+	}
+
+	for _, td := range tests {
+		t.Run(td.name, func(t *testing.T) {
+			r, params := findResourceByRequestPath(td.resourceInfoMap(), td.path)
+			t.Log(r)
+			t.Log(params)
+		})
+	}
+}
+
 func TestGenMatchPattern(t *testing.T) {
 	type want struct {
 		p        string
