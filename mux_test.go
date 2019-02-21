@@ -40,7 +40,7 @@ func TestFindResourceByRequestPath(t *testing.T) {
 
 	for _, td := range tests {
 		t.Run(td.name, func(t *testing.T) {
-			r, params := findResourceByRequestPath(td.resourceInfoMap(), td.path)
+			r, params := findResourceInfoByRequestPath(td.resourceInfoMap(), td.path)
 			t.Log(r)
 			t.Log(params)
 		})

@@ -14,13 +14,20 @@ type resourceInfoMap map[string]*resourceInfo
 const pathParamPrefix = "EaglePathParam:"
 
 type resourceInfo struct {
-	resource Resource
-	isRegExp bool
+	resource   Resource
+	isRegExp   bool
+	middleware Middleware
 }
 
 type Mux struct {
 	handler   http.Handler
 	resources resourceInfoMap
+}
+
+type Middleware func(next http.HandlerFunc) http.HandlerFunc
+
+func handleNotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func genMatchPattern(pattern string) (string, bool, error) {
@@ -65,7 +72,7 @@ func genMatchPattern(pattern string) (string, bool, error) {
 	return p, isRegExp, nil
 }
 
-func findResourceByRequestPath(resources resourceInfoMap, path string) (Resource, map[string]string) {
+func findResourceInfoByRequestPath(resources resourceInfoMap, path string) (*resourceInfo, map[string]string) {
 	params := make(map[string]string)
 	for pattern, ri := range resources {
 		if ri.isRegExp {
@@ -79,14 +86,30 @@ func findResourceByRequestPath(resources resourceInfoMap, path string) (Resource
 					params[name] = string(match[i])
 				}
 			}
-			return ri.resource, params
+			return ri, params
 		} else {
 			if path == pattern {
-				return ri.resource, params
+				return ri, params
 			}
 		}
 	}
 	return nil, params
+}
+
+func (mux *Mux) SetResourceWithMiddleware(pattern string, resource Resource, mw Middleware) error {
+	p, isRegExp, err := genMatchPattern(pattern)
+	if err != nil {
+		return err
+	}
+
+	ri := &resourceInfo{
+		resource:   resource,
+		isRegExp:   isRegExp,
+		middleware: mw,
+	}
+
+	mux.resources[p] = ri
+	return nil
 }
 
 func (mux *Mux) SetResource(pattern string, resource Resource) error {
@@ -95,11 +118,13 @@ func (mux *Mux) SetResource(pattern string, resource Resource) error {
 		return err
 	}
 
-	mux.resources[p] = &resourceInfo{
-		resource: resource,
-		isRegExp: isRegExp,
+	ri := &resourceInfo{
+		resource:   resource,
+		isRegExp:   isRegExp,
+		middleware: nil,
 	}
 
+	mux.resources[p] = ri
 	return nil
 }
 
@@ -107,10 +132,12 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 	method := r.Method
 	path := r.URL.Path
 
-	resource, params := findResourceByRequestPath(mux.resources, path)
-	if resource == nil {
-		// TODO: 404
+	ri, params := findResourceInfoByRequestPath(mux.resources, path)
+	if ri == nil {
+		return handleNotFound, make(map[string]string)
 	}
+
+	resource := ri.resource
 
 	var h http.HandlerFunc
 	switch method {
@@ -126,6 +153,10 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 		h = http.HandlerFunc(resource.Patch)
 	}
 	// TODO: method not allowed
+
+	if ri.middleware != nil {
+		h = ri.middleware(h)
+	}
 
 	return h, params
 }
