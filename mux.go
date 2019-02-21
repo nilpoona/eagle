@@ -30,6 +30,10 @@ func handleNotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
+func handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+}
+
 func genMatchPattern(pattern string) (string, bool, error) {
 	p := pattern
 	isRegExp := false
@@ -151,8 +155,9 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 		h = http.HandlerFunc(resource.Delete)
 	case http.MethodPatch:
 		h = http.HandlerFunc(resource.Patch)
+	default:
+		h = handleMethodNotAllowed
 	}
-	// TODO: method not allowed
 
 	if ri.middleware != nil {
 		h = ri.middleware(h)
