@@ -35,7 +35,7 @@ func handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 }
 
 func genMatchPattern(pattern string) (string, bool, error) {
-	p := pattern
+	p := strings.TrimRight(pattern, "/")
 	isRegExp := false
 
 	for {
@@ -134,7 +134,7 @@ func (mux *Mux) SetResource(pattern string, resource Resource) error {
 
 func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 	method := r.Method
-	path := r.URL.Path
+	path := strings.TrimRight(r.URL.Path, "/")
 
 	ri, params := findResourceInfoByRequestPath(mux.resources, path)
 	if ri == nil {
