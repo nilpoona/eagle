@@ -155,6 +155,8 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 		h = http.HandlerFunc(resource.Delete)
 	case http.MethodPatch:
 		h = http.HandlerFunc(resource.Patch)
+	case http.MethodOptions:
+		h = http.HandlerFunc(resource.Options)
 	default:
 		h = handleMethodNotAllowed
 	}
