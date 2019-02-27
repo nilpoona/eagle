@@ -21,13 +21,12 @@ func CORS(config CORSHeaders) Middleware {
 	eh := strings.Join(config.ExposeHeaders, ",")
 	ma := config.MaxAge
 	ac := config.AllowCredentials
-
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
 			allowOrigin := ""
 
-			for _, o := range allowMethods {
+			for _, o := range allowOrigins {
 				if o == "*" || ac {
 					allowOrigin = o
 					break
