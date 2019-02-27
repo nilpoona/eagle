@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 )
 
@@ -17,10 +18,16 @@ func TestFindResourceByRequestPath(t *testing.T) {
 	type resource struct {
 		RestResource
 	}
+	type want struct {
+		resourceInfo *resourceInfo
+		params       map[string]string
+	}
+
 	tests := []struct {
 		name            string
 		path            string
 		resourceInfoMap func() resourceInfoMap
+		wants           want
 	}{
 		{
 			name: "test1",
@@ -35,14 +42,28 @@ func TestFindResourceByRequestPath(t *testing.T) {
 					"/users/(?P<id>[0-9]+)": ri,
 				})
 			},
+			wants: want{
+				resourceInfo: &resourceInfo{
+					resource: &resource{},
+					isRegExp: true,
+				},
+				params: map[string]string{
+					"id": "2",
+				},
+			},
 		},
 	}
 
 	for _, td := range tests {
 		t.Run(td.name, func(t *testing.T) {
 			r, params := findResourceInfoByRequestPath(td.resourceInfoMap(), td.path)
-			t.Log(r)
-			t.Log(params)
+			if !reflect.DeepEqual(r, td.wants.resourceInfo) {
+				t.Errorf("findResourceInfoByRequestPath failed result %+v, expected: %+v", r, td.wants.resourceInfo)
+			}
+
+			if !reflect.DeepEqual(params, td.wants.params) {
+				t.Errorf("findResourceInfoByRequestPath failed result %+v, expected: %+v", params, td.wants.params)
+			}
 		})
 	}
 }
