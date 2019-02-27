@@ -34,11 +34,6 @@ type CORSHeaders struct {
 	AllowCredentials bool     `json:"Access-Control-Allow-Credentials"`
 }
 
-func SetCORSHeaders(ch CORSHeaders) error {
-
-	return nil
-}
-
 func RenderJSON(w http.ResponseWriter, code int, v interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
