@@ -12,6 +12,7 @@ type Resource interface {
 	Patch(w http.ResponseWriter, r *http.Request)
 	Options(w http.ResponseWriter, r *http.Request)
 	Head(w http.ResponseWriter, r *http.Request)
+	Trace(w http.ResponseWriter, r *http.Request)
 }
 
 type RestResource struct{}
@@ -23,6 +24,7 @@ func (resource *RestResource) Delete(w http.ResponseWriter, r *http.Request)  {}
 func (resource *RestResource) Patch(w http.ResponseWriter, r *http.Request)   {}
 func (resource *RestResource) Options(w http.ResponseWriter, r *http.Request) {}
 func (resource *RestResource) Head(w http.ResponseWriter, r *http.Request)    {}
+func (resource *RestResource) Trace(w http.ResponseWriter, r *http.Request)   {}
 
 type Router interface {
 	http.Handler
