@@ -15,16 +15,16 @@ type Resource interface {
 	Trace(w http.ResponseWriter, r *http.Request)
 }
 
-type RestResource struct{}
+type ResourceImpl struct{}
 
-func (resource *RestResource) Get(w http.ResponseWriter, r *http.Request)     {}
-func (resource *RestResource) Post(w http.ResponseWriter, r *http.Request)    {}
-func (resource *RestResource) Put(w http.ResponseWriter, r *http.Request)     {}
-func (resource *RestResource) Delete(w http.ResponseWriter, r *http.Request)  {}
-func (resource *RestResource) Patch(w http.ResponseWriter, r *http.Request)   {}
-func (resource *RestResource) Options(w http.ResponseWriter, r *http.Request) {}
-func (resource *RestResource) Head(w http.ResponseWriter, r *http.Request)    {}
-func (resource *RestResource) Trace(w http.ResponseWriter, r *http.Request)   {}
+func (resource *ResourceImpl) Get(w http.ResponseWriter, r *http.Request)     {}
+func (resource *ResourceImpl) Post(w http.ResponseWriter, r *http.Request)    {}
+func (resource *ResourceImpl) Put(w http.ResponseWriter, r *http.Request)     {}
+func (resource *ResourceImpl) Delete(w http.ResponseWriter, r *http.Request)  {}
+func (resource *ResourceImpl) Patch(w http.ResponseWriter, r *http.Request)   {}
+func (resource *ResourceImpl) Options(w http.ResponseWriter, r *http.Request) {}
+func (resource *ResourceImpl) Head(w http.ResponseWriter, r *http.Request)    {}
+func (resource *ResourceImpl) Trace(w http.ResponseWriter, r *http.Request)   {}
 
 type Router interface {
 	http.Handler
