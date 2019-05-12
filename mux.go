@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var _ Router = (*Mux)(nil)
+
 type resourceInfoMap map[string]*resourceInfo
 
 const pathParamPrefix = "EaglePathParam:"

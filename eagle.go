@@ -29,6 +29,7 @@ func (resource *RestResource) Trace(w http.ResponseWriter, r *http.Request)   {}
 type Router interface {
 	http.Handler
 	SetResource(pattern string, resource Resource) error
+	SetResourceWithMiddleware(pattern string, resource Resource, mw Middleware) error
 }
 
 func NewRouter() *Mux {
