@@ -157,6 +157,8 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 		h = http.HandlerFunc(resource.Patch)
 	case http.MethodOptions:
 		h = http.HandlerFunc(resource.Options)
+	case http.MethodTrace:
+		h = http.HandlerFunc(resource.Trace)
 	default:
 		h = handleMethodNotAllowed
 	}
