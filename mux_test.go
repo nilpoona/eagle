@@ -16,7 +16,7 @@ func isSameErrorMessage(err, err2 error) bool {
 
 func TestFindResourceByRequestPath(t *testing.T) {
 	type resource struct {
-		RestResource
+		ResourceImpl
 	}
 	type want struct {
 		resourceInfo *resourceInfo
