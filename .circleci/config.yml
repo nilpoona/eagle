@@ -1,0 +1,25 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+
+executors:
+  default:
+    working_directory: /go/eagle
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    docker:
+      - image: circleci/golang:1.12
+
+jobs:
+  ci-build:
+    executor: default
+    steps:
+      - checkout
+      - run: scripts/cibuild
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - ci-build
