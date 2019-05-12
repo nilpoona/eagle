@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -27,7 +26,7 @@ func PathParam(r *http.Request, k string) string {
 	return ""
 }
 
-func bindFormData(formData url.Values, v interface{}) error {
+func bindFormData(formData map[string][]string, v interface{}) error {
 	typ := reflect.TypeOf(v).Elem()
 	val := reflect.ValueOf(v).Elem()
 
@@ -317,14 +316,12 @@ func Bind(r *http.Request, v interface{}) error {
 	case strings.HasPrefix(contentType, "application/xml"):
 		enc := xml.NewDecoder(r.Body)
 		return enc.Decode(v)
-	case strings.HasPrefix(contentType, "application/x-www-form-urlencoded"):
+	case strings.HasPrefix(contentType, "application/x-www-form-urlencoded"), strings.HasPrefix(contentType, "multipart/form-data"):
 		err := r.ParseForm()
 		if err != nil {
 			return err
 		}
-		return nil
-	case strings.HasPrefix(contentType, "multipart/form-data"):
-		return nil
+		return bindFormData(r.Form, v)
 	default:
 		return errors.New("unsupported media type")
 	}

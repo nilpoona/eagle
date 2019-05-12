@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"net/url"
 	"reflect"
 	"testing"
 )
@@ -22,7 +21,7 @@ func TestBindFormData(t *testing.T) {
 	name := "foo"
 
 	type args struct {
-		formData url.Values
+		formData map[string][]string
 		v        interface{}
 	}
 
@@ -67,8 +66,9 @@ func TestBindFormData(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				formData: url.Values{
+				formData: map[string][]string{
 					"name": []string{"foo"},
+					"bar":  []string{"hoge"},
 					"age":  []string{"22"},
 				},
 				v: &formData{},
@@ -82,7 +82,7 @@ func TestBindFormData(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				formData: url.Values{
+				formData: map[string][]string{
 					"name":     []string{"foo"},
 					"age":      []string{"22"},
 					"activate": []string{"true"},
@@ -99,7 +99,7 @@ func TestBindFormData(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				formData: url.Values{
+				formData: map[string][]string{
 					"name":     []string{"foo"},
 					"age":      []string{"22"},
 					"activate": []string{"true"},
@@ -118,7 +118,7 @@ func TestBindFormData(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				formData: url.Values{
+				formData: map[string][]string{
 					"name":     []string{"foo"},
 					"age":      []string{"22"},
 					"activate": []string{"true"},
@@ -139,7 +139,7 @@ func TestBindFormData(t *testing.T) {
 		{
 			name: "",
 			args: args{
-				formData: url.Values{
+				formData: map[string][]string{
 					"name":            []string{name},
 					"nullablename":    []string{name},
 					"age":             []string{"22"},
