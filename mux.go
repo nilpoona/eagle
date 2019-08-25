@@ -22,8 +22,9 @@ type resourceInfo struct {
 }
 
 type Mux struct {
-	handler   http.Handler
-	resources resourceInfoMap
+	handler     http.Handler
+	resources   resourceInfoMap
+	middlewares []Middleware
 }
 
 type Middleware func(next http.HandlerFunc) http.HandlerFunc
@@ -102,22 +103,12 @@ func findResourceInfoByRequestPath(resources resourceInfoMap, path string) (*res
 	return nil, params
 }
 
-func (mux *Mux) SetResourceWithMiddleware(pattern string, resource Resource, mw Middleware) error {
-	p, isRegExp, err := genMatchPattern(pattern)
-	if err != nil {
-		return err
-	}
-
-	ri := &resourceInfo{
-		resource:   resource,
-		isRegExp:   isRegExp,
-		middleware: mw,
-	}
-
-	mux.resources[p] = ri
-	return nil
+// Middleware Add Middleware to mux. The added middleware applies to all resources
+func (mux *Mux) Use(m Middleware) {
+	mux.middlewares = append(mux.middlewares, m)
 }
 
+// SetResource
 func (mux *Mux) SetResource(pattern string, resource Resource) error {
 	p, isRegExp, err := genMatchPattern(pattern)
 	if err != nil {
@@ -165,8 +156,9 @@ func (mux *Mux) handle(r *http.Request) (http.HandlerFunc, map[string]string) {
 		h = handleMethodNotAllowed
 	}
 
-	if ri.middleware != nil {
-		h = ri.middleware(h)
+	if len(mux.middlewares) > 0 {
+		middleware := ChainMiddleware(mux.middlewares...)
+		h = middleware(h)
 	}
 
 	return h, params

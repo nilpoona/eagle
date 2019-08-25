@@ -1,3 +1,35 @@
+/*
+	Package eagle provides functions required to build REST API.
+
+    It is things resource get API
+
+	```
+	type ThingsResource struct {
+		eagle.ResourceImpl
+	}
+
+	func (tr *ThingsResource) Get(w http.ResponseWriter, r *http.Request) {
+		type response {
+			message string
+		}
+		resp := response{message: "something"}
+		eagle.RenderJSON(w, http.StatusOK, &resp)
+	}
+
+	func main() {
+		tr := &ThingsResource{}
+		router := eagle.NewRouter()
+		err = router.SetResource("/things", tr)
+		if err != nil {
+			panic(err)
+		}
+		if err := http.ListenAndServe(":8080", router); err != nil {
+			panic(err)
+		}
+	}
+	```
+*/
+
 package eagle
 
 import (
@@ -29,7 +61,7 @@ func (resource *ResourceImpl) Trace(w http.ResponseWriter, r *http.Request)   {}
 type Router interface {
 	http.Handler
 	SetResource(pattern string, resource Resource) error
-	SetResourceWithMiddleware(pattern string, resource Resource, mw Middleware) error
+	Use(middleware Middleware)
 }
 
 func NewRouter() *Mux {
